@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #main{
+            width: 540px;
+            height: 550px;
+            background-color: #c0c0c0;
+            margin: auto;
+            border: 2px solid #000;
+        }
+        #event{
+            margin: auto;
+        }
+        .gridLane{
+            width: 16px !important;
+            height: 16px !important;
+            border: 1px solid #c0c0c0;
+            display: inline-table;
+            line-height: 0px;
+            padding: 0px !important;
+            margin: 0px !important;
+        }
+        .snakeFeed{
+            background-color: #00b3ee;
+        }
+    </style>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+
+</head>
+<body>
+<div id="main"></div>
+<button id="start" >START</button>
+<button style="display: none" id="stop">END</button>
+<button  style="display: none"  id="pause">PAUSE</button>
+<button  style="display: none"  id="resume">RESUME</button>
+<div id="status"></div>
+</body>
+<script src="/bower_components/jquery/dist/jquery.min.js"></script>
+<script>
+    var status = 'stop'
+    var speed = 1000;
+    var snakeSize = 4;
+    var player_1 = {
+        'move':1,
+        color:'black',
+        head:0,
+        tail:0,
+        size:snakeSize,
+        box:[]
+    }
+    var lastBox = 0;
+    var lastBox2 = 0;
+    var player_2 = {
+        'move':-1,
+        color:'BLUE',
+        head:0,
+        tail:0,
+        size:snakeSize,
+        box:[]
+
+    }
+    var startGame = '';
+    drawFeed()
+
+    $(document).ready(function(){
+        var main  = $("#main")
+
+        for(var i = 0;i<750;i++){
+
+            main.append('<div class="gridLane" id="blk_'+i+'"></div>')
+            lastBox = i;
+        }
+        initFirstPlayer()
+        initSecondPlayer()
+
+    })
+    $('#pause').on("click",function() {
+        if(status=='start') {
+            status = 'stop'
+            $(this).hide()
+            $('#stop').show()
+            $('#resume').show()
+            $('#start').hide()
+            clearInterval(startGame)
+        }
+    })
+    $('#resume').on("click",function() {
+        startGame = setInterval(firstSnake, speed)
+        startGame2 = setInterval(secondSnake, speed)
+        status = 'start'
+    })
+
+    $('#stop').on("click",function(){
+        $("#status").html("")
+        if(status=='start') {
+            $(this).hide()
+            $('#start').show()
+            $('#pause').hide()
+            $('#resume').hide()
+            status = 'stop'
+            $(".gridLane").attr("data-player",'')
+            player_1['move'] =1
+            $('.gridLane').css({"background-color":'#c0c0c0'})
+            player_1['box'] =[]
+            console.log(status)
+            initFirstPlayer()
+            initSecondPlayer()
+            clearInterval(startGame)
+        }
+    })
+
+
+    $('#start').on("click",function(){
+        $("#status").html("")
+        $(this).hide()
+        $('#stop').show()
+        $('#pause').show()
+        if(status=='stop'){
+            status = 'start'
+            player_1['move'] =1
+            player_1['box'] =[]
+            initFirstPlayer()
+            startGame = setInterval(firstSnake, speed)
+        }
+    })
+
+    function firstSnake(){
+        var i=1;
+        var move = player_1.head +player_1.move
+        if((move+1)%30==0 && player_1.move==-1){
+            move +=30
+        }
+        if((move)%30==0 && player_1.move==1){
+            move -=30
+        }
+
+        if(player_1.box.indexOf(move)==-1 && move>=0 &&  move<lastBox) {
+
+            $("#status").html("")
+            $("#blk_" + move).attr("data-player", '')
+            $("#blk_" + move).css({"background-color": player_1.color})
+            player_1.head = move;
+            player_1.tail = 0;
+            $("#blk_" + player_1.box[0]).css({"background-color": '#c0c0c0'})
+            player_1.box.shift();
+            player_1.box.push(move);
+            /*var box = player_1.box;
+             box[0] = player_1.box[1]
+
+             for(var j = 1;j<box.length;j++){
+
+             }*/
+            if($("#blk_" + move).hasClass('snakeFeed')){
+                $("#blk_" + move).removeClass('snakeFeed')
+                player_1.size +=1;
+            }
+        }else{
+            $("#pause").hide()
+            $("#status").html("GAME OVER")
+            clearInterval(startGame)
+        }
+    }
+    function secondSnake(){
+        var i=1;
+        var move = player_2.head +player_2.move
+        if((move+1)%30==0 && player_2.move==-1){
+            move +=30
+        }
+        if((move)%30==0 && player_2.move==1){
+            move -=30
+        }
+
+        if(player_2.box.indexOf(move)==-1 && move>=0 &&  move<lastBox) {
+
+            $("#status").html("")
+            $("#blk_" + move).attr("data-player", '')
+            $("#blk_" + move).css({"background-color": player_2.color})
+            player_2.head = move;
+            player_2.tail = 0;
+            $("#blk_" + player_2.box[0]).css({"background-color": '#c0c0c0'})
+            player_2.box.shift();
+            player_2.box.push(move);
+            /*var box = player_1.box;
+             box[0] = player_1.box[1]
+
+             for(var j = 1;j<box.length;j++){
+
+             }*/
+            if($("#blk_" + move).hasClass('snakeFeed')){
+                $("#blk_" + move).removeClass('snakeFeed')
+                player_2.size +=1;
+            }
+        }else{
+            $("#pause").hide()
+            $("#status").html("GAME OVER")
+            clearInterval(startGame)
+        }
+    }
+    document.onkeydown = function(e) {
+        if(status=='start') {
+            switch (e.keyCode) {
+                case 37:
+                    if (player_1.move != 1)
+                        player_1.move = -1
+                    break;
+                case 38:
+                    if (player_1.move != 30)
+                        player_1.move = -30
+                    break;
+                case 39:
+                    if (player_1.move != -1)
+                        player_1.move = 1
+
+                    break;
+                case 40:
+                    if (player_1.move != -30)
+                        player_1.move = 30
+                    break;
+            }
+        }
+    };
+    function drawFeed(){
+        if($('.gridLane').hasClass('snakeFeed')==false){
+            var condition = false
+            while(condition){
+                var totalGrid = $(".gridLane").length-1;
+                var ran = getRandomInt(0,totalGrid);
+                if(player_1.box.indexOf(ran)==-1){
+                    condition = true;
+                    $('#blk_'+ran).addClass('snakeFeed')
+                }
+            }
+        }
+    }
+    function drawFeed2(){
+        if($('.gridLane').hasClass('snakeFeed')==false){
+            var condition = false
+            while(condition){
+                var totalGrid = $(".gridLane").length-1;
+                var ran = getRandomInt(0,totalGrid);
+                if(player_2.box.indexOf(ran)==-1){
+                    condition = true;
+                    $('#blk_'+ran).addClass('snakeFeed')
+                }
+            }
+        }
+    }
+
+    function initFirstPlayer(){
+        for(var i = 0;i<snakeSize;i++){
+            if(i==0){
+                player_1.tail==i;
+            }
+            $("#blk_"+i).attr("data-player",1)
+            player_1.box.push(i)
+            $("#blk_"+i).css({"background-color":player_1.color})
+            player_1.head = i;
+        }
+    }
+    function initSecondPlayer(){
+        var totalGrid = $(".gridLane").length-1;
+        for(var i = 0;i<snakeSize;i++){
+
+            if(i==0){
+                player_2.head==totalGrid;
+            }
+
+
+            $("#blk_"+totalGrid).attr("data-player",2)
+            player_2.box.push(totalGrid)
+            $("#blk_"+totalGrid).css({"background-color":player_2.color})
+            player_2.tail = totalGrid;
+            --totalGrid;
+        }
+    }
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+</script>
+</html>
