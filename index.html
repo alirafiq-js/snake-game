@@ -33,188 +33,205 @@
 </head>
 <body>
 <div id="main"></div>
-<button id="start" >START</button>
-<button style="display: none" id="stop">END</button>
-<button  style="display: none"  id="pause">PAUSE</button>
-<button  style="display: none"  id="resume">RESUME</button>
+<button id="start" onclick="start()" >START</button>
+<button style="" onclick="stop()" id="stop">END</button>
+<button  style=""  onclick="pause(this)" id="pause">PAUSE</button>
+<button  style="" onclick="resume(this)"  id="resume">RESUME</button>
 <div id="status"></div>
 </body>
-<script src="/bower_components/jquery/dist/jquery.min.js"></script>
 <script>
-    var status = 'stop'
-    var speed = 500;
-    var snakeSize = 4;
-    var player_1 = {
-        'move':1,
-        color:'black',
+    let startGame;
+    let player = {
+        status:'stop',
+        speed:400,
+        size:4,
+        move:1,
+        nextMove:1,
+        color:"black",
         head:0,
         tail:0,
-        size:snakeSize,
-        box:[]
+        box:[],
+        lastBox:0
     }
-    var lastBox = 0;
-    var player_2 = {}
-    var startGame = '';
 
-    $(document).ready(function(){
-        var main  = $("#main")
-
-        for(var i = 0;i<750;i++){
-
-            main.append('<div class="gridLane" id="blk_'+i+'"></div>')
-            lastBox = i;
+    let feed =-1;
+    (()=>{
+        const main = document.getElementById('main');
+        for (let i = 0; i<750;i++) {
+            console.log(i)
+            main.innerHTML += '<div class="gridLane" id="blk_'+i+'"></div>';
+            player.lastBox = i;
         }
-        initFirstPlayer()
+        initFirstPlayer();
+    })();
 
-    })
-    $('#pause').on("click",function() {
-        if(status=='start') {
-            status = 'stop'
-            $(this).hide()
-            $('#stop').show()
-            $('#resume').show()
-            $('#start').hide()
-            clearInterval(startGame)
+    function pause(){
+        if (player.status=='start'){
+            player.status = 'stop';
+            document.getElementById('pause').style.visibility = 'hidden';
+            document.getElementById('stop').style.visibility = 'hidden';
+            document.getElementById('resume').style.visibility = '';
+            clearInterval(startGame);
         }
-    })
-    $('#resume').on("click",function() {
-        startGame = setInterval(firstSnake, speed)
-        status = 'start'
-    })
+    }
 
-    $('#stop').on("click",function(){
-        $("#status").html("")
-        if(status=='start') {
-            $(this).hide()
-            $('#start').show()
-            $('#pause').hide()
-            $('#resume').hide()
-            status = 'stop'
-            nextMove = 1;
-            $(".gridLane").attr("data-player",'')
-            player_1['move'] =1
-            $('.gridLane').css({"background-color":'#c0c0c0'})
-            player_1['box'] =[]
-            player_1['size'] =snakeSize;
-            console.log(status)
+    function resume(){
+        if (player.status=='stop'){
+            player.status = 'start';
+            document.getElementById('resume').style.visibility = 'hidden';
+            document.getElementById('start').style.visibility = 'hidden';
+            document.getElementById('stop').style.visibility = '';
+            document.getElementById('pause').style.visibility = '';
+            startGame = setInterval(firstSnake, player.speed)
+        }
+    }
+
+    function stop(){
+        document.getElementById('status').innerHTML = '';
+
+        if (player.status=='start'){
+            player.status = 'stop';
+            document.getElementById('pause').style.visibility = '';
+            document.getElementById('stop').style.visibility = 'hidden';
+            document.getElementById('start').style.visibility = '';
+            document.getElementById('resume').style.visibility = 'hidden';
+            player.nextMove = 1;
+            player.move = 1;
+            player.box = [];
+            player.size = player.size;
+            initFirstPlayer();
+            setAttrDataPlayer();
+            setAttrColor();
+            clearInterval(startGame);
+        }
+    }
+
+    function setAttrColor () {
+        for (let i = 0; i<750;i++) {
+            document.getElementById('blk_'+i).style.backgroundColor = '#c0c0c0';
+        }
+    }
+    function setAttrDataPlayer () {
+        for (let i = 0; i<750;i++) {
+            document.getElementById('blk_'+i).setAttribute('data-player', '');
+        }
+    }
+    function start() {
+        document.getElementById('status').innerHTML = '';
+        document.getElementById('resume').style.visibility = 'hidden';
+        document.getElementById('start').style.visibility = 'hidden';
+        document.getElementById('stop').style.visibility = '';
+        document.getElementById('pause').style.visibility = '';
+        if(player.status=='stop'){
+            player.status = 'start'
+            player.move =1
+            player.box =[]
             initFirstPlayer()
-            clearInterval(startGame)
+            startGame = setInterval(firstSnake, player.speed)
         }
-    })
 
-    var nextMove = 1;
-    $('#start').on("click",function(){
-        $("#status").html("")
-        $(this).hide()
-        $('#stop').show()
-        $('#pause').show()
-        if(status=='stop'){
-            status = 'start'
-            player_1['move'] =1
-            player_1['box'] =[]
-            initFirstPlayer()
-            startGame = setInterval(firstSnake, speed)
-        }
-    })
+    }
 
     function firstSnake(){
-        var i=1;
-        player_1.move = nextMove
-        var move = player_1.head +player_1.move
-        console.log('nextMove',move);
-        console.log('player_1.move',player_1.move);
-        if((move+1)%30==0 && player_1.move==-1){
+        player.move = player.nextMove
+        var move = player.head +player.move
+        if((move+1)%30==0 && player.move==-1){
             move +=30
         }
-        if((move)%30==0 && player_1.move==1){
+        if((move)%30==0 && player.move==1){
             move -=30
         }
-
-        if(0>move && player_1.move==-30){
-            console.log('------------------')
+        if(0>move && player.move==-30){
             move +=750
         }
 
-        if((move)>750 && player_1.move==30){
+        if((move)>750 && player.move==30){
             move -=750
         }
 
-        if(player_1.box.indexOf(move)==-1 && move>=0 &&  move<=lastBox) {
+        if(player.box.indexOf(move)==-1 && move>=0 &&  move<=player.lastBox) {
 
-            $("#status").html("")
-            $("#blk_" + move).attr("data-player", '')
-            $("#blk_" + move).css({"background-color": player_1.color})
-            player_1.head = move;
-            player_1.tail = 0;
-            $("#blk_" + player_1.box[0]).css({"background-color": '#c0c0c0'})
-            player_1.box.push(move);
-            if($("#blk_" + move).hasClass('snakeFeed')){
-                $("#blk_" + move).removeClass('snakeFeed')
-                player_1.size +=1;
-                if(player_1.size%5==0){
-                    speed -= speed/10;
+            document.getElementById("status").innerHTML = '';
+            document.getElementById("blk_" + move).setAttribute("data-player", '');
+            document.getElementById("blk_" + move).style.backgroundColor= player.color;
+            player.head = move;
+            player.tail = 0;
+            if (document.getElementById("blk_" + player.box[0]))
+                document.getElementById("blk_" + player.box[0]).style.backgroundColor= '#c0c0c0';
+            player.box.push(move);
+
+            if(move == feed){
+                let className = document.getElementById("blk_" + move).className;
+                className = className.replace('snakeFeed');
+                document.getElementById("blk_" + move).className = className;
+                player.size +=1
+                feed = -1;
+                if(player.size%5==0){
+                    player.speed -= player.speed/10;
                     clearInterval(startGame)
-                    startGame =setInterval(firstSnake, speed)
+                    startGame =setInterval(firstSnake, player.speed)
                 }
 
             }else{
-                player_1.box.shift();
+                player.box.shift();
             }
         }else{
-            $("#pause").hide()
-            $("#status").html("GAME OVER")
+            document.getElementById('pause').style.visibility = 'hidden';
+            document.getElementById('status').innerHTML = 'Game Over';
             clearInterval(startGame)
         }
         drawFeed()
     }
     document.onkeydown = function(e) {
-        console.log(e.keyCode)
-        if(status=='start') {
+        if(player.status=='start') {
             switch (e.keyCode) {
                 case 37:
-                    if (player_1.move != 1)
-                        nextMove = -1
+                    if (player.move != 1)
+                        player.nextMove = -1
                     break;
                 case 38:
-                    if (player_1.move != 30)
-                        nextMove = -30
+                    if (player.move != 30)
+                        player.nextMove = -30
                     break;
                 case 39:
-                    if (player_1.move != -1)
-                        nextMove = 1
+                    if (player.move != -1)
+                        player.nextMove = 1
 
                     break;
                 case 40:
-                    if (player_1.move != -30)
-                        nextMove= 30
+                    if (player.move != -30)
+                        player.nextMove= 30
                     break;
             }
         }
     };
     function drawFeed(){
-        if($('.gridLane').hasClass('snakeFeed')==false){
+        if(feed===-1){
             var condition = true
             while(condition){
-                var totalGrid = $(".gridLane").length-1;
+                var totalGrid = 749;
                 var ran = getRandomInt(0,totalGrid);
-                if(player_1.box.indexOf(ran)==-1){
+                console.log('random',ran)
+                if(player.box.indexOf(ran)==-1){
                     condition = false;
-                    $('#blk_'+ran).addClass('snakeFeed')
+                    document.getElementById('blk_'+ran).className = 'gridLane snakeFeed';
+                    feed = ran;
                 }
             }
         }
     }
     function initFirstPlayer(){
-        for(var i = 0;i<player_1.size;i++){
+        for(let i = 0;i<player.size;i++){
             if(i==0){
-                player_1.tail==i;
+                player.tail==i;
             }
-            $(".gridLane").attr("data-player",'')
-            $("#blk_"+i).attr("data-player",1)
-            player_1.box.push(i)
-            $("#blk_"+i).css({"background-color":player_1.color})
-            player_1.head = i;
+            setAttrDataPlayer();
+            document.getElementById("blk_"+i).style.backgroundColor = player.color;
+            document.getElementById("blk_"+i).setAttribute("data-player",1)
+            player.box.push(i)
+            player.head = i;
         }
+
     }
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
