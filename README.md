@@ -1,2 +1,2 @@
-# snake-game in Javascript/JQuery
+# snake-game in Javascript
 just open index.html
